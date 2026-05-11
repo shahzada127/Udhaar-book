@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dilshad Iqbal Kiryana — Udhaar Book</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1a14;--surface:#172019;--card:#1e2d23;--card2:#243329;--border:#2e4235;
+  --green:#3dbb72;--green2:#2d9657;--green-pale:rgba(61,187,114,0.12);
+  --gold:#d4aa40;--gold-pale:rgba(212,170,64,0.12);
+  --red:#e05252;--red-pale:rgba(224,82,82,0.1);
+  --text:#e8f0eb;--muted:#7a9585;--radius:14px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+input,select,textarea,button{font-family:inherit}
+::placeholder{color:var(--muted);opacity:.6}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 12px;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;z-index:10;overflow-y:auto;}
+.logo{display:flex;align-items:center;gap:10px;padding:8px 8px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.logo-icon{width:38px;height:38px;background:var(--green-pale);border:1px solid rgba(61,187,114,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.logo-text{font-family:'Playfair Display',serif;font-size:.85rem;font-weight:700;color:#fff;line-height:1.3}
+.logo-sub{font-size:.6rem;color:var(--muted);margin-top:1px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:var(--muted);font-size:.82rem;font-weight:500;transition:all .2s;margin-bottom:2px;border:none;background:transparent;width:100%;text-align:left;}
+.nav-item:hover{background:var(--card);color:var(--text)}
+.nav-item.active{background:var(--green-pale);color:var(--green);border:1px solid rgba(61,187,114,.2)}
+.nav-icon{font-size:1rem;width:20px;text-align:center}
+.nav-divider{height:1px;background:var(--border);margin:12px 0}
+.sidebar-stats{margin-top:auto;padding:12px;background:var(--card);border-radius:12px;border:1px solid var(--border)}
+.ss-label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.ss-amount{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--green)}
+.ss-row{display:flex;justify-content:space-between;margin-top:8px}
+.ss-item{text-align:center}
+.ss-num{display:block;font-size:.9rem;font-weight:600;color:var(--text)}
+.ss-lbl{display:block;font-size:.6rem;color:var(--muted);margin-top:1px}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;padding:24px;min-height:100vh}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.page-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700}
+.page-sub{font-size:.78rem;color:var(--muted);margin-top:2px}
+.btn-primary{padding:10px 18px;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s,transform .1s;}
+.btn-primary:hover{background:var(--green2)}
+.btn-primary:active{transform:scale(.98)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+
+/* SEARCH */
+.search-row{display:flex;gap:10px;margin-bottom:20px;align-items:center}
+.search-box{flex:1;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:0 14px}
+.search-box input{flex:1;background:transparent;border:none;padding:10px 0;color:var(--text);font-size:.84rem;outline:none}
+.filter-sel{padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.8rem;outline:none;cursor:pointer}
+
+/* CUSTOMERS GRID */
+.customers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.cust-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.cust-card:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.cust-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--green)}
+.cust-card.has-balance::before{background:var(--red)}
+.cust-card.cleared::before{background:var(--gold)}
+.cc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.cc-name{font-size:.95rem;font-weight:600;color:var(--text)}
+.cc-phone{font-size:.7rem;color:var(--muted);margin-top:2px}
+.cc-balance{text-align:right}
+.cc-amount{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--red)}
+.cc-amount.zero{color:var(--gold)}
+.cc-label{font-size:.62rem;color:var(--muted);margin-top:1px}
+.cc-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.cc-txn{font-size:.7rem;color:var(--muted)}
+.cc-date{font-size:.68rem;color:var(--muted)}
+.badge{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:.62rem;font-weight:500}
+.badge.pending{background:var(--red-pale);color:var(--red)}
+.badge.cleared{background:var(--gold-pale);color:var(--gold)}
+
+/* EMPTY / LOADING */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:3rem;display:block;margin-bottom:14px}
+.empty-title{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:6px}
+.empty-sub{font-size:.8rem}
+.loading{text-align:center;padding:60px;color:var(--muted);font-size:.88rem}
+.spinner{display:inline-block;width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* DETAIL PAGE */
+.detail-page{display:none}
+.back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:.82rem;margin-bottom:16px;padding:0;transition:color .2s}
+.back-btn:hover{color:var(--text)}
+.detail-header{background:linear-gradient(145deg,#1a3d26,#0f2318);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:20px;position:relative;overflow:hidden;}
+.detail-header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(61,187,114,0.08),transparent 60%);pointer-events:none}
+.dh-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.dh-name{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:#fff}
+.dh-phone{font-size:.78rem;color:var(--muted);margin-top:4px}
+.dh-actions{display:flex;gap:8px}
+.balance-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+.bc{background:rgba(255,255,255,.04);border-radius:12px;padding:12px;text-align:center}
+.bc-num{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;display:block}
+.bc-lbl{font-size:.65rem;color:rgba(255,255,255,.4);display:block;margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
+.bc.total .bc-num{color:var(--red)}
+.bc.paid-bc .bc-num{color:var(--green)}
+.bc.balance .bc-num{color:var(--gold)}
+
+/* ACTION ROW */
+.action-row{display:flex;gap:10px;margin-bottom:20px}
+.btn-udhaar{flex:1;padding:12px;background:var(--red-pale);border:1px solid var(--red);color:var(--red);border-radius:10px;font-size:.84rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-udhaar:hover{background:var(--red);color:#fff}
+.btn-payment{flex:1;padding:12px;background:var(--green-pale);border:1px solid var(--green);color:var(--green);border-radius:10px;font-size:.84rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-payment:hover{background:var(--green);color:#fff}
+
+/* TRANSACTIONS */
+.txn-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.txn-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.txn-title{font-size:.82rem;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.6px}
+.txn-row{display:grid;grid-template-columns:140px 1fr 1fr auto;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);align-items:center;transition:background .15s;}
+.txn-row:last-child{border-bottom:none}
+.txn-row:hover{background:rgba(255,255,255,.02)}
+.txn-badge{padding:3px 10px;border-radius:20px;font-size:.65rem;font-weight:600;display:inline-block}
+.txn-badge.udhaar{background:var(--red-pale);color:var(--red)}
+.txn-badge.payment{background:var(--green-pale);color:var(--green)}
+.txn-items{font-size:.75rem;color:var(--muted)}
+.txn-meta{font-size:.7rem;color:var(--muted);margin-top:2px}
+.txn-amount{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;text-align:right}
+.txn-amount.udhaar{color:var(--red)}
+.txn-amount.payment{color:var(--green)}
+.running-bal{font-size:.65rem;color:var(--muted);text-align:right;margin-top:2px}
+.txn-del{background:none;border:none;color:var(--border);cursor:pointer;font-size:.8rem;padding:4px 6px;transition:color .2s;border-radius:6px}
+.txn-del:hover{color:var(--red);background:var(--red-pale)}
+
+/* MODALS */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px 20px;width:100%;max-width:420px;animation:popIn .2s ease}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;margin-bottom:4px}
+.modal-sub{font-size:.78rem;color:var(--muted);margin-bottom:18px}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.fg label{font-size:.7rem;color:var(--muted);font-weight:500;letter-spacing:.3px}
+.fg input,.fg select,.fg textarea{padding:10px 12px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:.86rem;outline:none;transition:border-color .2s;width:100%;}
+.fg input:focus,.fg select:focus{border-color:var(--green)}
+.fg-row{display:flex;gap:10px}
+.fg-row .fg{flex:1}
+.modal-actions{display:flex;gap:8px;margin-top:4px}
+.btn-ghost{flex:1;padding:11px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:10px;cursor:pointer;font-size:.84rem;transition:all .2s}
+.btn-ghost:hover{border-color:var(--text);color:var(--text)}
+.btn-danger{flex:1;padding:11px;background:var(--red-pale);border:1px solid var(--red);color:var(--red);border-radius:10px;cursor:pointer;font-size:.84rem;font-weight:600;transition:all .2s}
+.btn-danger:hover{background:var(--red);color:#fff}
+.form-err{color:var(--red);font-size:.75rem;padding:8px 12px;background:var(--red-pale);border-radius:8px;margin-bottom:10px;display:none}
+.form-err.show{display:block}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 18px;font-size:.82rem;z-index:999;animation:slideUp .3s ease;display:none;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.toast.show{display:flex}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+
+/* MOBILE */
+.hamburger{display:none;position:fixed;top:12px;left:12px;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:1.1rem}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);transition:transform .3s}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay.show{display:block}
+  .main{margin-left:0;padding:16px}
+  .hamburger{display:flex}
+  .topbar{margin-top:44px}
+  .customers-grid{grid-template-columns:1fr}
+  .txn-row{grid-template-columns:120px 1fr auto;gap:8px}
+  .txn-row>div:nth-child(3){display:none}
+  .action-row{flex-direction:column}
+  .balance-cards{gap:6px}
+  .bc-num{font-size:1rem}
+}
+
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<button class="hamburger" onclick="toggleSidebar()">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🏪</div>
+    <div>
+      <div class="logo-text">Dilshad Iqbal</div>
+      <div class="logo-sub">Kiryana & General Store</div>
+    </div>
+  </div>
+  <button class="nav-item active" onclick="showCustomersList();closeSidebar()">
+    <span class="nav-icon">👥</span> All Customers
+  </button>
+  <button class="nav-item" onclick="openAddCustomer();closeSidebar()">
+    <span class="nav-icon">➕</span> New Customer
+  </button>
+  <div class="nav-divider"></div>
+  <div class="sidebar-stats">
+    <div class="ss-label">Total Outstanding</div>
+    <div class="ss-amount" id="ssTotalDue">₨ 0</div>
+    <div class="ss-row">
+      <div class="ss-item"><span class="ss-num" id="ssCustCount">0</span><span class="ss-lbl">Customers</span></div>
+      <div class="ss-item"><span class="ss-num" id="ssPendingCount">0</span><span class="ss-lbl">Pending</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- CUSTOMERS PAGE -->
+  <div id="pageCust">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Customers</div>
+        <div class="page-sub" id="custSubtitle">Loading...</div>
+      </div>
+      <button class="btn-primary" onclick="openAddCustomer()">➕ New Customer</button>
+    </div>
+    <div class="search-row">
+      <div class="search-box">
+        🔍 <input type="text" id="searchInp" placeholder="Search by name or phone..." oninput="renderCustomers()">
+      </div>
+      <select class="filter-sel" id="filterSel" onchange="renderCustomers()">
+        <option value="all">All</option>
+        <option value="pending">Has Balance</option>
+        <option value="cleared">Cleared</option>
+      </select>
+    </div>
+    <div id="custList"></div>
+  </div>
+
+  <!-- DETAIL PAGE -->
+  <div id="pageDetail" class="detail-page">
+    <button class="back-btn" onclick="showCustomersList()">← Back to Customers</button>
+    <div class="detail-header">
+      <div class="dh-top">
+        <div>
+          <div class="dh-name" id="detailName">—</div>
+          <div class="dh-phone" id="detailPhone"></div>
+        </div>
+        <div class="dh-actions">
+          <button class="btn-primary" style="font-size:.75rem;padding:7px 12px" onclick="openEditCustomer()">✏ Edit</button>
+          <button style="font-size:.75rem;padding:7px 12px;background:var(--red-pale);border:1px solid var(--red);color:var(--red);border-radius:10px;cursor:pointer;font-weight:600" onclick="confirmDeleteCustomer()">🗑 Delete</button>
+        </div>
+      </div>
+      <div class="balance-cards">
+        <div class="bc total"><span class="bc-num" id="bcTotal">₨ 0</span><span class="bc-lbl">Total Udhaar</span></div>
+        <div class="bc paid-bc"><span class="bc-num" id="bcPaid">₨ 0</span><span class="bc-lbl">Total Paid</span></div>
+        <div class="bc balance"><span class="bc-num" id="bcBalance">₨ 0</span><span class="bc-lbl">Balance Due</span></div>
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="btn-udhaar" onclick="openTxnModal('udhaar')">➕ Add Udhaar</button>
+      <button class="btn-payment" onclick="openTxnModal('payment')">💰 Record Payment</button>
+    </div>
+    <div class="txn-section">
+      <div class="txn-header">
+        <span class="txn-title">Transaction History</span>
+        <span id="txnCount" style="font-size:.72rem;color:var(--muted)"></span>
+      </div>
+      <div id="txnList"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ADD/EDIT CUSTOMER MODAL -->
+<div class="modal-bg" id="custModal">
+  <div class="modal">
+    <div class="modal-title" id="custModalTitle">New Customer</div>
+    <div class="modal-sub" id="custModalSub">Add a new customer to your ledger</div>
+    <div class="fg"><label>Full Name *</label><input type="text" id="custName" placeholder="e.g. Rahim Bhai" onkeydown="if(event.key==='Enter')saveCustomer()"></div>
+    <div class="fg"><label>Phone Number</label><input type="text" id="custPhone" placeholder="03xx-xxxxxxx" onkeydown="if(event.key==='Enter')saveCustomer()"></div>
+    <div class="form-err" id="custErr"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeCustModal()">Cancel</button>
+      <button class="btn-primary" id="custSaveBtn" onclick="saveCustomer()" style="flex:1">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSACTION MODAL -->
+<div class="modal-bg" id="txnModal">
+  <div class="modal">
+    <div class="modal-title" id="txnModalTitle">Add Udhaar</div>
+    <div class="modal-sub" id="txnModalSub"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Amount (₨) *</label><input type="number" id="txnAmount" placeholder="0" min="0" onkeydown="if(event.key==='Enter')saveTxn()"></div>
+      <div class="fg"><label>Date *</label><input type="date" id="txnDate"></div>
+    </div>
+    <div class="fg"><label>Items / Note (optional)</label><input type="text" id="txnItems" placeholder="e.g. Sugar 2kg, Flour 5kg" onkeydown="if(event.key==='Enter')saveTxn()"></div>
+    <div class="form-err" id="txnErr"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeTxnModal()">Cancel</button>
+      <button class="btn-primary" id="txnSaveBtn" onclick="saveTxn()" style="flex:1">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-bg" id="deleteModal">
+  <div class="modal">
+    <div class="modal-title">Confirm Delete</div>
+    <div class="modal-sub" id="deleteDesc" style="margin-bottom:0"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn-danger" id="deleteConfirmBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Supabase Setup ────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://ukuwydftleklecblhmal.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVrdXd5ZGZ0bGVrbGVjYmxobWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NjU4OTgsImV4cCI6MjA5NDA0MTg5OH0.YnfThC3VL_eFIUaLu6bpvcZ5iaaSANSll5OWCxdDUhA';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let customers = [];
+let currentCustomer = null;
+let currentTxns = [];
+let txnType = 'udhaar';
+let editingCustomerId = null;
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+const fmt = n => '₨ ' + Number(n||0).toLocaleString('en-PK');
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const todayStr = () => new Date().toISOString().split('T')[0];
+const fmtDate = d => d ? new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '';
+const fmtDT   = d => d ? new Date(d).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.innerHTML = (type==='success'?'✓ ':'✗ ') + msg;
+  t.className = 'toast show '+type;
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+// ── Load Data ─────────────────────────────────────────────────────────────────
+async function loadCustomers() {
+  document.getElementById('custList').innerHTML = `<div class="loading"><div class="spinner"></div><br>Loading...</div>`;
+
+  const [{ data: custs }, { data: txns }] = await Promise.all([
+    sb.from('customers').select('*').order('name'),
+    sb.from('transactions').select('*')
+  ]);
+
+  customers = (custs||[]).map(c => {
+    const ct = (txns||[]).filter(t=>t.customer_id===c.id);
+    const totalUdhaar  = ct.filter(t=>t.type==='udhaar').reduce((s,t)=>s+Number(t.amount),0);
+    const totalPayment = ct.filter(t=>t.type==='payment').reduce((s,t)=>s+Number(t.amount),0);
+    const balance = totalUdhaar - totalPayment;
+    const last = ct.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
+    return {...c, totalUdhaar, totalPayment, balance, txnCount:ct.length, lastDate:last?.date};
+  });
+
+  updateSidebarStats();
+  renderCustomers();
+}
+
+function updateSidebarStats() {
+  const due     = customers.reduce((s,c)=>s+Math.max(0,c.balance),0);
+  const pending = customers.filter(c=>c.balance>0).length;
+  document.getElementById('ssTotalDue').textContent    = fmt(due);
+  document.getElementById('ssCustCount').textContent   = customers.length;
+  document.getElementById('ssPendingCount').textContent = pending;
+}
+
+function renderCustomers() {
+  const search = document.getElementById('searchInp').value.trim().toLowerCase();
+  const filter = document.getElementById('filterSel').value;
+  let list = customers
+    .filter(c => filter==='pending' ? c.balance>0 : filter==='cleared' ? c.balance<=0 : true)
+    .filter(c => !search || c.name.toLowerCase().includes(search) || (c.phone||'').includes(search));
+
+  document.getElementById('custSubtitle').textContent = `${list.length} customer${list.length!==1?'s':''}`;
+
+  const el = document.getElementById('custList');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty"><span class="empty-icon">👥</span><div class="empty-title">${search?'No results found':'No customers yet'}</div><div class="empty-sub">${!search?'Click "New Customer" to get started':''}</div></div>`;
+    return;
+  }
+
+  el.innerHTML = `<div class="customers-grid">${list.map(c=>`
+    <div class="cust-card ${c.balance>0?'has-balance':'cleared'}" onclick="openCustomer('${c.id}')">
+      <div class="cc-top">
+        <div>
+          <div class="cc-name">${esc(c.name)}</div>
+          ${c.phone?`<div class="cc-phone">📞 ${esc(c.phone)}</div>`:''}
+        </div>
+        <div class="cc-balance">
+          <div class="cc-amount ${c.balance<=0?'zero':''}">${fmt(Math.max(0,c.balance))}</div>
+          <div class="cc-label">Balance Due</div>
+        </div>
+      </div>
+      <div class="cc-bottom">
+        <span class="cc-txn">📋 ${c.txnCount} transaction${c.txnCount!==1?'s':''}</span>
+        ${c.lastDate?`<span class="cc-date">${fmtDate(c.lastDate)}</span>`:''}
+        <span class="badge ${c.balance>0?'pending':'cleared'}">${c.balance>0?'⏳ Pending':'✓ Cleared'}</span>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+// ── Customer Detail ───────────────────────────────────────────────────────────
+async function openCustomer(id) {
+  currentCustomer = customers.find(c=>c.id===id);
+  if (!currentCustomer) return;
+  document.getElementById('pageCust').style.display   = 'none';
+  document.getElementById('pageDetail').style.display = 'block';
+  document.getElementById('detailName').textContent   = currentCustomer.name;
+  document.getElementById('detailPhone').textContent  = currentCustomer.phone ? '📞 '+currentCustomer.phone : '';
+  await loadTransactions();
+}
+
+async function loadTransactions() {
+  document.getElementById('txnList').innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+
+  const { data, error } = await sb.from('transactions')
+    .select('*').eq('customer_id', currentCustomer.id)
+    .order('date',{ascending:true}).order('created_at',{ascending:true});
+
+  if (error) { showToast('Failed to load','error'); return; }
+  currentTxns = data||[];
+
+  let totalUdhaar=0, totalPaid=0, running=0;
+  currentTxns.forEach(t=>{
+    if (t.type==='udhaar') { totalUdhaar+=Number(t.amount); running+=Number(t.amount); }
+    else { totalPaid+=Number(t.amount); running-=Number(t.amount); }
+    t._running = running;
+  });
+  const balance = totalUdhaar - totalPaid;
+
+  // update customer in list
+  const idx = customers.findIndex(c=>c.id===currentCustomer.id);
+  if (idx!==-1) customers[idx] = {...customers[idx], totalUdhaar, totalPayment:totalPaid, balance, txnCount:currentTxns.length};
+  currentCustomer = {...currentCustomer, totalUdhaar, totalPayment:totalPaid, balance};
+
+  document.getElementById('bcTotal').textContent   = fmt(totalUdhaar);
+  document.getElementById('bcPaid').textContent    = fmt(totalPaid);
+  document.getElementById('bcBalance').textContent = fmt(Math.max(0,balance));
+  document.getElementById('txnCount').textContent  = `${currentTxns.length} entries`;
+  updateSidebarStats();
+
+  if (!currentTxns.length) {
+    document.getElementById('txnList').innerHTML = `<div class="empty" style="padding:30px"><span class="empty-icon" style="font-size:2rem">📋</span><div class="empty-title">No transactions yet</div><div class="empty-sub">Add udhaar or record a payment above</div></div>`;
+    return;
+  }
+
+  // Show newest first
+  const sorted = [...currentTxns].reverse();
+  document.getElementById('txnList').innerHTML = sorted.map(t=>`
+    <div class="txn-row" style="animation:slideIn .2s ease">
+      <div>
+        <span class="txn-badge ${t.type}">${t.type==='udhaar'?'➕ Udhaar':'💰 Payment'}</span>
+        <div class="txn-meta">📅 ${fmtDate(t.date)}</div>
+      </div>
+      <div>
+        <div class="txn-items">${t.items?esc(t.items):'<span style="color:var(--border)">—</span>'}</div>
+        <div class="txn-meta">${fmtDT(t.created_at)}</div>
+      </div>
+      <div>
+        <div class="txn-amount ${t.type}">${t.type==='udhaar'?'+':'-'}${fmt(t.amount)}</div>
+        <div class="running-bal">Balance: ${fmt(t._running)}</div>
+      </div>
+      <button class="txn-del" onclick="confirmDeleteTxn('${t.id}')" title="Delete">🗑</button>
+    </div>`).join('');
+}
+
+function showCustomersList() {
+  document.getElementById('pageDetail').style.display = 'none';
+  document.getElementById('pageCust').style.display   = 'block';
+  renderCustomers();
+}
+
+// ── Add/Edit Customer ─────────────────────────────────────────────────────────
+function openAddCustomer() {
+  editingCustomerId = null;
+  document.getElementById('custModalTitle').textContent = 'New Customer';
+  document.getElementById('custModalSub').textContent   = 'Add a new customer to your ledger';
+  document.getElementById('custName').value  = '';
+  document.getElementById('custPhone').value = '';
+  document.getElementById('custErr').classList.remove('show');
+  document.getElementById('custModal').classList.add('show');
+  setTimeout(()=>document.getElementById('custName').focus(),100);
+}
+
+function openEditCustomer() {
+  editingCustomerId = currentCustomer.id;
+  document.getElementById('custModalTitle').textContent = 'Edit Customer';
+  document.getElementById('custModalSub').textContent   = 'Update customer information';
+  document.getElementById('custName').value  = currentCustomer.name;
+  document.getElementById('custPhone').value = currentCustomer.phone||'';
+  document.getElementById('custErr').classList.remove('show');
+  document.getElementById('custModal').classList.add('show');
+}
+
+function closeCustModal() { document.getElementById('custModal').classList.remove('show'); }
+
+async function saveCustomer() {
+  const name  = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const errEl = document.getElementById('custErr');
+  errEl.classList.remove('show');
+  if (!name) { errEl.textContent='Customer name is required'; errEl.classList.add('show'); return; }
+
+  const btn = document.getElementById('custSaveBtn');
+  btn.disabled=true; btn.textContent='Saving...';
+
+  if (editingCustomerId) {
+    const { error } = await sb.from('customers').update({name,phone}).eq('id',editingCustomerId);
+    if (error) { showToast('Failed to update','error'); }
+    else {
+      showToast('Customer updated!');
+      currentCustomer = {...currentCustomer,name,phone};
+      document.getElementById('detailName').textContent  = name;
+      document.getElementById('detailPhone').textContent = phone?'📞 '+phone:'';
+      closeCustModal(); await loadCustomers();
+    }
+  } else {
+    const { data, error } = await sb.from('customers').insert([{name,phone}]).select().single();
+    if (error) { showToast('Failed to add customer','error'); }
+    else { showToast('Customer added!'); closeCustModal(); await loadCustomers(); openCustomer(data.id); }
+  }
+  btn.disabled=false; btn.textContent='Save';
+}
+
+// ── Transactions ──────────────────────────────────────────────────────────────
+function openTxnModal(type) {
+  txnType = type;
+  document.getElementById('txnModalTitle').textContent = type==='udhaar'?'➕ Add Udhaar':'💰 Record Payment';
+  document.getElementById('txnModalSub').textContent   = type==='udhaar'
+    ? `Adding credit for ${currentCustomer.name}`
+    : `Current balance due: ${fmt(Math.max(0,currentCustomer.balance))}`;
+  document.getElementById('txnAmount').value = '';
+  document.getElementById('txnItems').value  = '';
+  document.getElementById('txnDate').value   = todayStr();
+  document.getElementById('txnErr').classList.remove('show');
+  document.getElementById('txnModal').classList.add('show');
+  setTimeout(()=>document.getElementById('txnAmount').focus(),100);
+}
+
+function closeTxnModal() { document.getElementById('txnModal').classList.remove('show'); }
+
+async function saveTxn() {
+  const amount = parseFloat(document.getElementById('txnAmount').value);
+  const date   = document.getElementById('txnDate').value;
+  const items  = document.getElementById('txnItems').value.trim();
+  const errEl  = document.getElementById('txnErr');
+  errEl.classList.remove('show');
+
+  if (!amount||amount<=0){ errEl.textContent='Enter a valid amount'; errEl.classList.add('show'); return; }
+  if (!date)             { errEl.textContent='Date is required';     errEl.classList.add('show'); return; }
+  if (txnType==='payment' && amount>currentCustomer.balance+0.01) {
+    errEl.textContent=`Payment ${fmt(amount)} exceeds balance ${fmt(currentCustomer.balance)}`;
+    errEl.classList.add('show'); return;
+  }
+
+  const btn = document.getElementById('txnSaveBtn');
+  btn.disabled=true; btn.textContent='Saving...';
+
+  const { error } = await sb.from('transactions').insert([{
+    customer_id:currentCustomer.id, type:txnType, amount, items, date
+  }]);
+
+  if (error) showToast('Failed to save','error');
+  else { showToast(txnType==='udhaar'?'Udhaar added!':'Payment recorded!'); closeTxnModal(); await loadTransactions(); }
+  btn.disabled=false; btn.textContent='Save';
+}
+
+// ── Delete Transaction ────────────────────────────────────────────────────────
+function confirmDeleteTxn(id) {
+  const t = currentTxns.find(x=>x.id===id);
+  document.getElementById('deleteDesc').innerHTML = `Delete this <strong>${t?.type}</strong> of <strong>${fmt(t?.amount)}</strong> on ${fmtDate(t?.date)}?`;
+  document.getElementById('deleteConfirmBtn').onclick = async ()=>{ 
+    const {error} = await sb.from('transactions').delete().eq('id',id);
+    if (error) showToast('Failed to delete','error');
+    else { showToast('Deleted!'); closeDeleteModal(); await loadTransactions(); }
+  };
+  document.getElementById('deleteModal').classList.add('show');
+}
+
+// ── Delete Customer ───────────────────────────────────────────────────────────
+function confirmDeleteCustomer() {
+  document.getElementById('deleteDesc').innerHTML = `Delete <strong>${esc(currentCustomer.name)}</strong> and all ${currentCustomer.txnCount} transactions? This cannot be undone.`;
+  document.getElementById('deleteConfirmBtn').onclick = async ()=>{
+    const {error} = await sb.from('customers').delete().eq('id',currentCustomer.id);
+    if (error) showToast('Failed to delete','error');
+    else { showToast('Customer deleted'); closeDeleteModal(); showCustomersList(); await loadCustomers(); }
+  };
+  document.getElementById('deleteModal').classList.add('show');
+}
+
+function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('show'); }
+
+// ── Close modals on bg click ──────────────────────────────────────────────────
+['custModal','txnModal','deleteModal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){
+    if(e.target===this){ if(id==='custModal')closeCustModal(); else if(id==='txnModal')closeTxnModal(); else closeDeleteModal(); }
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadCustomers();
+</script>
+</body>
+</html>
